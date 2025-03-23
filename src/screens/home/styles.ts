@@ -3,57 +3,55 @@ import { StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#131016',
-    padding: 24
+    backgroundColor: '#1A1A1A',
+     
   },
-  title: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginTop: 48, 
-  },
+ 
 
-  form: {
-    width: '100%',
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    marginTop: 36,
-    gap: 16,
-    marginBottom: 42
-  },
-
-  input: {
-    flex: 1,
-    height: 56,
-    backgroundColor: "#1f1e25",
-    borderRadius: 5,
-    color: '#fff',
-    padding: 16
-  },
-  button: {
-    width: 56,
-    height: 56,
-    backgroundColor: "#31cf67",
-    borderRadius: 5,
+  logoContainer:{
+    backgroundColor: '#0D0D0D',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-
+    paddingTop: 70,
+    paddingBottom: 70
   },
-  buttonText: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: 'bold',
+  
+  mainContainer:{
+    paddingLeft: 24,  
+    paddingRight: 24,  
   },
-
-  listEmptyName: {
-    color: "#fff",
-    fontSize: 16,
+  
+  counterContainer:{
+      display: 'flex',
+      flexDirection: "row",
+      justifyContent: 'space-between',
+      marginBottom: 16,
+  },
+  counter:{
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,  
+  },
+  counterLabel:{
+    fontSize: 14,
     fontWeight: 'bold',
-    textAlign: 'center',
-    marginTop: 24
-    
+    color: '#4EA8DE', 
+  },
+  counterLabelDone:{
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#8284FA', 
+        
+  },
+  counterNumber:{
+    backgroundColor: '#333',
+    color: '#fff',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 999,
+    fontWeight: 'bold',
+    fontSize: 12,
   }
+  
 });

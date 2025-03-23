@@ -1,78 +1,131 @@
-import { useState } from 'react';
-import { Text, TextInput, TouchableOpacity, View, FlatList, Alert } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, FlatList, Alert, Text, Image } from 'react-native';
 import { styles } from './styles';
-import Participant from '../../components/Participant';
+import Form from '@/src/components/Form';
+import Empty from '@/src/components/Empty';
+import Task from '@/src/components/Task';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+type Task = {
+    id: number;
+    text: string;
+    done: boolean;
+};
+
+const STORAGE_KEY = '@tasks';
 
 export default function Home() {
-    const [participants, setParticipants] = useState<string[]>([]);
-    const [participantName, setParticipantName] = useState<string>('');
+    const [tasks, setTasks] = useState<Task[]>([]);
+    const [taskItem, setTaskItem] = useState<string>('');
 
-    const handleParticipantAdd = () => {
-        if (participants.includes(participantName)) {
-            Alert.alert('Participante já adicionado', 'Esse participante já foi adicionado a lista de presença');
-            return;
-        }
-        setParticipants(prevState => [...prevState, participantName]);
-        setParticipantName('');
-        console.log('Adicionando participante');
-
-    }
-
-    const handleParticipantRemove = (name: string) => {
-        const newParticipants = participants.filter(participant => participant !== name);
-     
-        Alert.alert('Remover participante', `Deseja remover o participante "${name}" da lista de presença?`, [
-            {
-                text: "Não",
-                style: "cancel"
-            },
-            {
-                text: "Sim",
-                onPress: () => {
-                    Alert.alert('Participante removido', `O participante "${name}" foi removido da lista de presença`);
-                    setParticipants(newParticipants);
+    useEffect(() => {
+        const loadTasks = async () => {
+            try {
+                const storedTasks = await AsyncStorage.getItem(STORAGE_KEY);
+                if (storedTasks) {
+                    const parsed = JSON.parse(storedTasks);
+                    setTasks(parsed);
                 }
+            } catch (error) {
+                console.log('Erro ao carregar tasks:', error);
             }
+        };
+
+        loadTasks();
+    }, []);
+
+
+    useEffect(() => {
+        const saveTasks = async () => {
+            try {
+                await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+            } catch (error) {
+                console.log('Erro ao salvar tasks:', error);
+            }
+        };
+
+        saveTasks();
+
+
+    }, [tasks]);
+
+    const handleAddTask = () => {
+        if (!taskItem.trim()) return;
+
+        const newTask: Task = {
+            id: Date.now(),
+            text: taskItem.trim(),
+            done: false,
+        };
+
+        setTasks(prev => [...prev, newTask]);
+        setTaskItem('');
+    };
+
+    const handleTaskDone = (id: number) => {
+        const updatedTasks = tasks.map(task =>
+            task.id === id ? { ...task, done: !task.done } : task
+        );
+
+        const sortedTasks = updatedTasks.sort((a, b) => Number(a.done) - Number(b.done));
+        setTasks(sortedTasks);
+    };
+
+    const handleParticipantRemove = (id: number) => {
+        Alert.alert('Remover Task', 'Deseja remover a task?', [
+            { text: 'Não', style: 'cancel' },
+            {
+                text: 'Sim',
+                onPress: () => {
+                    const newTasks = tasks.filter(task => task.id !== id);
+                    setTasks(newTasks);
+                    Alert.alert('Task removida');
+                },
+            },
         ]);
-    }
+    };
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title} key="1">Nome do evento</Text>
-
-            <View style={styles.form}>
-                <TextInput
-                    value={participantName}
-                    onChangeText={e => setParticipantName(e)}
-                    style={styles.input}
-                    placeholder='Nome do Participante'
-                    placeholderTextColor={"#6b6b6b"}
-                />
-                <TouchableOpacity
-                    onPress={() => { handleParticipantAdd() }}
-                    style={styles.button} >
-                    <Text style={styles.buttonText}> + </Text>
-                </TouchableOpacity>
+            <View style={styles.logoContainer}>
+                <Image source={require('@/assets/images/icons/icon-logo.png')} />
             </View>
-            <FlatList
-                data={participants}
-                keyExtractor={item => item}
-                showsVerticalScrollIndicator={false}
-                ListEmptyComponent={
-                    <>
-                        <Text style={styles.listEmptyName}>
-                            Ninguém chegou no evendo ainda? 😢
-                        </Text>
-                        <Text style={styles.listEmptyName}>
-                            Adicione pessoas a sua lista de presença
-                        </Text>
-                    </>
 
-                }
-                renderItem={({ item }) => <Participant name={item} onRemove={() => { handleParticipantRemove(item) }} />}
-            />
+
+            <View style={styles.mainContainer}>
+                <Form
+                    taskItem={taskItem}
+                    setTaskItem={setTaskItem}
+                    handleAddTask={handleAddTask}
+                />
+
+                <View style={styles.counterContainer}>
+                    <View style={styles.counter}>
+                        <Text style={styles.counterLabel}>Criadas</Text>
+                        <Text style={styles.counterNumber}>{tasks.length}</Text>
+                    </View>
+
+                    <View style={styles.counter}>
+                        <Text style={styles.counterLabelDone}>Concluídas</Text>
+                        <Text style={styles.counterNumber}>{tasks.filter(task => task.done).length}</Text>
+                    </View>
+                </View>
+                <FlatList
+                    data={tasks}
+                    keyExtractor={item => item.id.toString()}
+                    showsVerticalScrollIndicator={false}
+                    ListEmptyComponent={<Empty />}
+                    renderItem={({ item }) => (
+                        <Task
+                            text={item.text}
+                            done={item.done}
+                            id={item.id}
+                            onRemove={() => handleParticipantRemove(item.id)}
+                            handleTaskDone={handleTaskDone}
+                        />
+                    )}
+                />
+            </View>
         </View>
     );
 }
-
-
